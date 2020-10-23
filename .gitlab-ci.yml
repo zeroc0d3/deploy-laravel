@@ -1,0 +1,97 @@
+image: ruby:2.7.1-slim-buster
+
+stages:
+  - Testing Application
+  - Deploy Staging
+  - Deploy Production
+
+### VARIABLES ###
+variables:
+  ENV_STAGING:         "staging"
+  ENV_PRODUCTION:      "production"
+  MYSQL_DATABASE:      "laravel"
+  MYSQL_ROOT_PASSWORD: "secret"
+  MYSQL_PASSWORD:      "secret"
+
+.preparation: &preparation
+### SETUP SSH ###
+- apt-get update -qq
+- apt-get install -qq git build-essential
+- 'which ssh-agent || ( apt-get install -qq openssh-client )'
+- mkdir -p ~/.ssh
+- echo "${MYAPP_SSH_PRIVATE_KEY}" | tr -d '\r' > ~/.ssh/id_rsa
+- echo "${MYAPP_KNOWN_HOSTS}" | tr -d '\r' > ~/.ssh/known_hosts
+- chmod 700 ~/.ssh/id_rsa
+- eval "$(ssh-agent -s)"
+- ssh-add ~/.ssh/id_rsa
+- ssh-keyscan -H 'gitlab.com' >> ~/.ssh/known_hosts
+- chmod 644 ~/.ssh/known_hosts
+### INSTALL LIBRARY ###
+- gem install bundler
+- bundle install
+
+.run_test: &run_test
+- cp src/.env.pipeline.gitlab src/.env
+- make fixing-cache
+- make composer-install-cicd
+- make key-generate
+- make composer-dumpautoload
+- make run-migrate-all
+- make clear-all
+
+.run_staging: &run_staging
+- make deploy-staging
+
+.run_production: &run_production
+- make deploy-production
+
+.synchronize_staging: &synchronize_staging
+- make synchronize-staging
+
+.synchronize_production: &synchronize_production
+- make synchronize-production
+
+unit_test_staging:
+  image: edbizarro/gitlab-ci-pipeline-php:7.4-alpine
+  environment: ${ENV_STAGING}
+  stage: Testing Application
+  services:
+    - mariadb:10.3.11
+  script:
+    - *run_test
+  only:
+    - dev-staging
+
+unit_test_production:
+  image: edbizarro/gitlab-ci-pipeline-php:7.4-alpine
+  environment: ${ENV_PRODUCTION}
+  stage: Testing Application
+  services:
+    - mariadb:10.3.11
+  script:
+    - *run_test
+  only:
+    - dev-master
+
+deploy_staging:
+  environment: ${ENV_STAGING}
+  stage: Deploy Staging
+  before_script:
+    - *preparation
+  script:
+    - *run_staging
+  when: manual
+  only:
+    - dev-master
+    - dev-staging
+
+deploy_production:
+  environment: ${ENV_PRODUCTION}
+  stage: Deploy Production
+  before_script:
+    - *preparation
+  script:
+    - *run_production
+  when: manual
+  only:
+    - dev-master

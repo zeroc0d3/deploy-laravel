@@ -1,0 +1,101 @@
+definitions:
+  services:
+    mariadb:
+      image: mariadb:10.3.11
+      environment:
+        MYSQL_DATABASE:      "laravel"
+        MYSQL_PASSWORD:      "secret"
+        MYSQL_ROOT_PASSWORD: "secret"
+
+  steps:
+    - step: &run_test
+        name: Testing Application
+        image: edbizarro/gitlab-ci-pipeline-php:7.4-alpine
+        script:
+          - cp src/.env.pipeline.bitbucket src/.env
+          - make fixing-cache
+          - make composer-install-cicd
+          - make key-generate
+          - make composer-dumpautoload
+          - make run-migrate-all
+          - make clear-all
+        services:
+          - mariadb
+
+    - step: &deploy
+        name: Deploy Server
+        deployment: staging
+        image: ruby:2.7.1-slim-buster
+        trigger: manual
+
+unit_test: &unit_test
+  step:
+    <<: *run_test
+
+deploy_staging: &deploy_staging
+  <<: *deploy
+  step:
+    name: Deploy Staging
+    deployment: staging
+    image: ruby:2.7.1-slim-buster
+    trigger: manual
+    script:
+      ### SETUP SSH ###
+      - apt-get update -qq
+      - apt-get install -qq git build-essential
+      - 'which ssh-agent || ( apt-get install -qq openssh-client )'
+      - mkdir -p ~/.ssh
+      - echo "${MYAPP_SSH_PRIVATE_KEY}" | base64 --decode > ~/.ssh/id_rsa
+      - echo "${MYAPP_KNOWN_HOSTS}" | base64 --decode > ~/.ssh/known_hosts
+      - chmod 700 ~/.ssh/id_rsa
+      - eval "$(ssh-agent -s)"
+      - ssh-add ~/.ssh/id_rsa
+      - ssh-keyscan -H 'bitbucket.org' >> ~/.ssh/known_hosts
+      - chmod 644 ~/.ssh/known_hosts
+      ### INSTALL LIBRARY ###
+      - gem install bundler
+      - bundle install
+      ### DEPLOY ###
+      - make deploy-staging
+
+deploy_production: &deploy_production
+  <<: *deploy
+  step:
+    name: Deploy Production
+    deployment: production
+    image: ruby:2.7.1-slim-buster
+    trigger: manual
+    script:
+      ### SETUP SSH ###
+      - apt-get update -qq
+      - apt-get install -qq git build-essential
+      - 'which ssh-agent || ( apt-get install -qq openssh-client )'
+      - mkdir -p ~/.ssh
+      - echo "${MYAPP_SSH_PRIVATE_KEY}" | base64 --decode > ~/.ssh/id_rsa
+      - echo "${MYAPP_KNOWN_HOSTS}" | base64 --decode > ~/.ssh/known_hosts
+      - chmod 700 ~/.ssh/id_rsa
+      - eval "$(ssh-agent -s)"
+      - ssh-add ~/.ssh/id_rsa
+      - ssh-keyscan -H 'bitbucket.org' >> ~/.ssh/known_hosts
+      - chmod 644 ~/.ssh/known_hosts
+      ### INSTALL LIBRARY ###
+      - gem install bundler
+      - bundle install
+      ### DEPLOY ###
+      - make deploy-production
+
+pipelines:
+  branches:
+    dev-staging:
+      # Test
+      - <<: *unit_test
+      # Deploy Staging
+      - <<: *deploy_staging
+
+    dev-master:
+      # Test
+      - <<: *unit_test
+      # Deploy Staging
+      - <<: *deploy_staging
+      # Deploy Production
+      - <<: *deploy_production
