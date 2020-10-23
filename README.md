@@ -9,7 +9,7 @@ Zero downtime deployment Laravel with Capistrano
 
 * Clone this repo
   ```
-  git clone git@github.com:zeroc0d3lab-devops-poc/deploy-laravel.git
+  git clone git@github.com:zeroc0d3/deploy-laravel.git
   ```
 * Running bundle
   ```
