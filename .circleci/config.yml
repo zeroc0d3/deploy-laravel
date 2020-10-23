@@ -1,0 +1,122 @@
+version: 2.1
+
+workflows:
+  version: 2
+
+  ### Unit Testing Staging ###
+  unit_testing_staging:
+    jobs:
+      - run_test:
+          filters:
+            branches:
+              only: dev-staging
+
+  ### Unit Testing Production ###
+  unit_testing_production:
+    jobs:
+      - run_test:
+          filters:
+            branches:
+              only: dev-master
+
+  ### Deploy Staging ###
+  deploy_staging:
+    jobs:
+      - preparation
+      - run_staging:
+          requires:
+            - preparation
+          filters:
+            branches:
+              only: dev-staging
+      - hold:
+          type: approval
+          requires:
+            - run_staging
+          filters:
+            branches:
+              only:
+                - dev-master
+                - dev-staging
+
+  ### Deploy Production ###
+  deploy_production:
+    jobs:
+      - preparation
+      - run_production:
+          requires:
+            - preparation
+          filters:
+            branches:
+              only: dev-production
+      - hold:
+          type: approval
+          requires:
+            - run_production
+          filters:
+            branches:
+              only: dev-production
+
+
+jobs:
+  preparation:
+    docker:
+      - image: ruby:2.7.1-slim-buster
+    steps:
+      - run:
+          name: Preparation
+          command: |
+            ### SETUP SSH ###
+            apt-get update -qq
+            apt-get install -qq git build-essential
+            'which ssh-agent || ( apt-get install -qq openssh-client )'
+            mkdir -p ~/.ssh
+            echo "${MYAPP_SSH_PRIVATE_KEY}" | tr -d '\r' > ~/.ssh/id_rsa
+            echo "${MYAPP_KNOWN_HOSTS}" | tr -d '\r' > ~/.ssh/known_hosts
+            chmod 700 ~/.ssh/id_rsa
+            eval "$(ssh-agent -s)"
+            ssh-add ~/.ssh/id_rsa
+            ssh-keyscan -H 'gitlab.com' >> ~/.ssh/known_hosts
+            chmod 644 ~/.ssh/known_hosts
+
+            ### INSTALL LIBRARY ###
+            - gem install bundler
+            - bundle install
+
+  run_test:
+    docker:
+      - image: edbizarro/gitlab-ci-pipeline-php:7.4-alpine
+      - image: mariadb:10.3.11
+        environment:
+          MYSQL_DATABASE:      "laravel"
+          MYSQL_ROOT_PASSWORD: "secret"
+          MYSQL_PASSWORD:      "secret"
+    steps:
+      - run:
+          name: Running Test
+          command: |
+            cp src/.env.pipeline.gitlab src/.env
+            make fixing-cache
+            make composer-install-cicd
+            make key-generate
+            make composer-dumpautoload
+            make run-migrate-all
+            make clear-all
+
+  run_staging:
+    docker:
+      - image: ruby:2.7.1-slim-buster
+    steps:
+      - run:
+          name: Deploy Staging Environment
+          command: |
+            make deploy-staging
+
+  run_production:
+    docker:
+      - image: ruby:2.7.1-slim-buster
+    steps:
+      - run:
+          name: Deploy Production Environment
+          command: |
+            make deploy-production
