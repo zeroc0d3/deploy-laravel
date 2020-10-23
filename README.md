@@ -218,6 +218,12 @@ storage
   MYAPP_SSH_PUBLIC_KEY=
   MYAPP_KNOWN_HOSTS=
   ```
+* CircleCI Configuration Variable ([.circleci/config.yml](.circleci/config.yml))
+  ```
+  MYAPP_SSH_PRIVATE_KEY=
+  MYAPP_SSH_PUBLIC_KEY=
+  MYAPP_KNOWN_HOSTS=
+  ```
 * Trigger Pipeline CI/CD
   ```
   - Commit
