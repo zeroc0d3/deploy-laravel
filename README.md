@@ -207,18 +207,21 @@ storage
 
 ## Git Pipeline CI/CD
 * GitLab Configuration Variable
+  : [.gitlab-ci.yml](.gitlab-ci.yml)
   ```
   MYAPP_SSH_PRIVATE_KEY=
   MYAPP_SSH_PUBLIC_KEY=
   MYAPP_KNOWN_HOSTS=
   ```
 * BitBucket Configuration Variable (base64 encode)
+  : [bitbucket-pipelines.yml](bitbucket-pipelines.yml)
   ```
   MYAPP_SSH_PRIVATE_KEY=
   MYAPP_SSH_PUBLIC_KEY=
   MYAPP_KNOWN_HOSTS=
   ```
-* CircleCI Configuration Variable ([.circleci/config.yml](.circleci/config.yml))
+* CircleCI Configuration Variable
+  : [.circleci/config.yml](.circleci/config.yml)
   ```
   MYAPP_SSH_PRIVATE_KEY=
   MYAPP_SSH_PUBLIC_KEY=
