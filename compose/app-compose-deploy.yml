@@ -1,0 +1,45 @@
+version: '3.6'
+
+#================================================================================================
+# NETWORK SETUP
+#================================================================================================
+networks:
+  zeroc0d3lab_net:
+    name: ${NETWORKS_NAME:-zeroc0d3lab_net}
+    driver: ${NETWORKS_DRIVER:-bridge}
+    ipam:
+      config:
+        - subnet: 172.125.125.0/16
+
+#================================================================================================
+# VOLUME SETUP
+#================================================================================================
+volumes:
+  deploy:
+    driver: ${VOLUMES_DRIVER:-local}
+
+services:
+#================================================================================================
+# UBUNTU - DEPLOY
+#================================================================================================
+  deploy:
+    # image: ubuntu:${UBUNTU_VERSION:-20.04}
+    build:
+      context: ./docker/ubuntu
+      dockerfile: Dockerfile-20.04
+    container_name: ${CONTAINER_DEPLOYMENT:-zeroc0d3lab_deploy}
+    restart: unless-stopped
+    ports:
+      - "${PORT_DEPLOYMENT:-5291}:22"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./keys:/root/.ssh
+      - ./deploy:/root/deploy
+    environment:
+      - TZ="Asia/Jakarta"
+      - UBUNTU_VERSION=${UBUNTU_VERSION:-20.04}
+    privileged: true
+    tty: true
+    networks:
+      zeroc0d3lab_net:
+        ipv4_address: ${CONTAINER_IP_DEPLOYMENT:-172.125.125.8}

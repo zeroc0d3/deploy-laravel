@@ -1,0 +1,181 @@
+version: '3.6'
+
+#================================================================================================
+# NETWORK SETUP
+#================================================================================================
+networks:
+  zeroc0d3lab_net:
+    name: ${NETWORKS_NAME:-zeroc0d3lab_net}
+    driver: ${NETWORKS_DRIVER:-bridge}
+    ipam:
+      config:
+        - subnet: 172.125.125.0/16
+
+#================================================================================================
+# VOLUME SETUP
+#================================================================================================
+volumes:
+  adminer:
+    driver: ${VOLUMES_DRIVER:-local}
+  mariadb:
+    driver: ${VOLUMES_DRIVER:-local}
+  pgadmin:
+    driver: ${VOLUMES_DRIVER:-local}
+  portainer:
+    driver: ${VOLUMES_DRIVER:-local}
+  postgresql:
+    driver: ${VOLUMES_DRIVER:-local}
+  ubuntu:
+    driver: ${VOLUMES_DRIVER:-local}
+
+services:
+#================================================================================================
+# ADMINER
+#================================================================================================
+  adminer:
+    image: dockerframework/adminer:${ADMINER_VERSION:-4.7.7}
+    container_name: ${CONTAINER_ADMINER:-zeroc0d3lab_adminer}
+    restart: unless-stopped
+    ports:
+      - "${PORT_ADMINER:-5210}:8080"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ${SESSION_ADMINER:-/opt/data/docker/session/adminer}:/sessions
+    environment:
+      - TZ="Asia/Jakarta"
+      - ADMINER_VERSION=${ADMINER_VERSION:-4.7.7}
+      - INSTALL_MSSQL=${INSTALL_MSSQL:-false}
+    privileged: true
+    networks:
+      zeroc0d3lab_net:
+        ipv4_address: ${CONTAINER_IP_ADMINER:-172.125.125.3}
+
+#================================================================================================
+# MARIADB
+#================================================================================================
+  mariadb:
+    #image: yobasystems/alpine-mariadb:${MARIADB_VERSION}
+    build:
+      context: ./docker/mariadb
+      dockerfile: Dockerfile
+    container_name: ${CONTAINER_MARIADB:-zeroc0d3lab_mariadb}
+    restart: always
+    ports:
+      - "${PORT_MARIADB:-3306}:3306"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${DATA_MARIADB:-/opt/data/docker/mariadb}:/var/lib/mysql
+      #- ./docker/mariadb/rootfs/etc/my.cnf:/etc/my.cnf
+      #- ./docker/mariadb/rootfs/etc/my.cnf.d/mariadb-server.cnf:/etc/my.cnf.d/mariadb-server.cnf
+      #- ./config/mariadb/run-mysqld-mac.sh:/run-mysqld.sh
+    environment:
+      - ENV=local
+      - TZ="Asia/Jakarta"
+      - MYSQL_PROFILE=my-medium
+      - MYSQL_ROOT_PASSWORD=${MARIADB_ROOT_PASSWORD}
+      - MYSQL_ROOT_HOST=${MARIADB_ROOT_HOST}
+      - MYSQL_HOST=${MARIADB_HOST}
+      - MYSQL_DATABASE=${MARIADB_DATABASE}
+      - MYSQL_USER=${MARIADB_USER}
+      - MYSQL_PASSWORD=${MARIADB_PASSWORD}
+    #entrypoint: /run-mysqld.sh
+    privileged: true
+    tty: true
+    networks:
+      zeroc0d3lab_net:
+        ipv4_address: ${CONTAINER_IP_MARIADB:-172.125.125.4}
+
+#================================================================================================
+# PORTAINER
+#================================================================================================
+  portainer:
+    image: dockerframework/portainer:${PORTAINER_VERSION:-1.24.1}
+    container_name: ${CONTAINER_PORTAINER:-zeroc0d3lab_portainer}
+    restart: unless-stopped
+    ports:
+      - "${PORT_PORTAINER:-5212}:9000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${DATA_PORTAINER:-/opt/data/docker/portainer}:/data
+    environment:
+      - PORTAINER_TEMPLATE=generic
+      - PORTAINER_VERSION=${PORTAINER_VERSION:-1.24.1}
+    privileged: true
+    networks:
+      zeroc0d3lab_net:
+        ipv4_address: ${CONTAINER_IP_PORTAINER:-172.125.125.5}
+
+#================================================================================================
+# POSTGRESQL
+#================================================================================================
+  postgresql:
+    image: dockerframework/postgresql:${POSTGRESQL_VERSION}
+    container_name: ${CONTAINER_POSTGRESQL:-zeroc0d3lab_postgresql}
+    restart: always
+    ports:
+      - "${PORT_POSTGRESQL:-5432}:5432"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${DATA_POSTGRESQL:-/opt/data/docker/postgresql}:/var/lib/postgresql
+    environment:
+      - TZ="Asia/Jakarta"
+      - POSTGRES_VERSION=${POSTGRESQL_VERSION}
+      - POSTGRES_ROOT_HOST=${POSTGRES_ROOT_HOST}
+      - POSTGRES_DATABASE=${POSTGRES_DATABASE}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    privileged: true
+    tty: true
+    networks:
+      zeroc0d3lab_net:
+        ipv4_address: ${CONTAINER_IP_POSTGRESQL:-172.125.125.6}
+
+#================================================================================================
+# PGADMIN
+#================================================================================================
+  pgadmin:
+    image: dockerframework/pgadmin:${PGADMIN_VERSION:-4.22}
+    container_name: ${CONTAINER_PGADMIN:-zeroc0d3lab_pgadmin}
+    restart: unless-stopped
+    ports:
+      - "${PORT_PGADMIN}:80"
+    depends_on:
+      - postgresql
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ${SESSION_PGADMIN}:/sessions
+      - ${DATA_PGADMIN}:/var/lib/pgadmin/storage
+    environment:
+      - TZ="Asia/Jakarta"
+      - PGADMIN_VERSION=${PGADMIN_VERSION:-4.22}
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
+    privileged: true
+    networks:
+      zeroc0d3lab_net:
+        ipv4_address: ${CONTAINER_IP_PGADMIN:-172.125.125.7}
+
+#================================================================================================
+# UBUNTU
+#================================================================================================
+  ubuntu:
+    # image: ubuntu:${UBUNTU_VERSION:-18.04}
+    build:
+      context: ./docker/ubuntu
+      dockerfile: Dockerfile
+    container_name: ${CONTAINER_UBUNTU:-zeroc0d3lab_ubuntu}
+    restart: unless-stopped
+    ports:
+      - "${PORT_UBUNTU:-5290}:22"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./keys:/root/.ssh
+      - ./deploy:/root/deploy
+    environment:
+      - TZ="Asia/Jakarta"
+      - UBUNTU_VERSION=${UBUNTU_VERSION:-18.04}
+    privileged: true
+    tty: true
+    networks:
+      zeroc0d3lab_net:
+        ipv4_address: ${CONTAINER_IP_UBUNTU:-172.125.125.90}
