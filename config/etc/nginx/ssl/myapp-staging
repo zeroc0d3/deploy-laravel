@@ -1,0 +1,44 @@
+server {
+    if ($host = demo.myapp.com) {
+        return 301 https://$host$request_uri;
+    }
+
+    server_name demo.myapp.com;
+    listen 80;
+    listen [::]:80;
+    return 404;
+}
+
+server {
+    listen 443 ssl;
+
+    # Log files for Debugging
+    access_log /data/myapp/log/staging/access.log;
+    error_log /data/myapp/log/staging/error.log;
+
+    # Webroot Directory for Laravel project
+    root /data/myapp/staging/current/src/public;
+    index index.php index.html index.htm;
+
+    # Your Domain Name
+    server_name demo.myapp.com;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    # PHP-FPM Configuration Nginx
+    location ~ \.php$ {
+        try_files $uri =404;
+        fastcgi_split_path_info ^(.+\.php)(/.+)$;
+        fastcgi_pass unix:/var/run/php/php7.4-fpm.sock;
+        fastcgi_index index.php;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        include fastcgi_params;
+    }
+
+    ssl_certificate /etc/letsencrypt/live/demo.myapp.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/demo.myapp.com/privkey.pem;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+}
