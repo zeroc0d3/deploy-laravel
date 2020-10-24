@@ -1,0 +1,12 @@
+#!/bin/bash
+set -e
+
+# Build PHP extra's
+# Update conf/ini filesand install pecl extensions
+${OPENSHIFT_PHP_DIR}/bin/control build
+
+# Build Laravel Framework
+# Update composer executable
+source ${OPENSHIFT_REPO_DIR}/.openshift/action_hooks/build_laravel
+update_composer
+check_laravel
