@@ -227,6 +227,8 @@ storage
   MYAPP_SSH_PUBLIC_KEY=
   MYAPP_KNOWN_HOSTS=
   ```
+* OpenShift Configuration
+  : [.openshift/action_hooks](.openshift/action_hooks)
 * Trigger Pipeline CI/CD
   ```
   - Commit
@@ -261,6 +263,12 @@ storage
   ```
   docker-compose version 1.27.4, build 40524192
   ```
+
+## TODO
+* [ ] Provisioning with Terraform & Terragrunt
+* [ ] Deployment with Helm Chart
+* [ ] Deployment with K8S
+* [ ] Add K8S Playground Sample
 
 ## Properties
 * Author  : **Dwi Fahni Denni (@zeroc0d3)**

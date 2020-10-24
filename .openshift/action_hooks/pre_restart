@@ -1,0 +1,66 @@
+#!/bin/bash
+
+# The pre_start_cartridge and pre_stop_cartridge hooks are *SOURCED*
+# immediately before (re)starting or stopping the specified cartridge.
+# They are able to make any desired environment variable changes as
+# well as other adjustments to the application environment.
+
+# The post_start_cartridge and post_stop_cartridge hooks are executed
+# immediately after (re)starting or stopping the specified cartridge.
+
+# Exercise caution when adding commands to these hooks.  They can
+# prevent your application from stopping cleanly or starting at all.
+# Application start and stop is subject to different timeouts
+# throughout the system.
+
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+
+set -e
+
+echo "Setting environment variables..."
+export APP_ENV="${APPLICATION_ENV:-production}"
+if [[ "${APPLICATION_ENV:-}" != "development" ]]; then
+  export APP_DEBUG=false
+else
+  export APP_DEBUG=true
+fi
+if [ "$(type -t set_env_var)" == "function" ]; then
+  set_env_var 'APP_ENV' $APP_ENV $OPENSHIFT_HOMEDIR/.env/user_vars
+  set_env_var 'APP_DEBUG' $APP_DEBUG $OPENSHIFT_HOMEDIR/.env/user_vars
+fi
+
+if [ ! -z "$OPENSHIFT_APP_DNS" ]; then
+  export APP_URL="$OPENSHIFT_APP_DNS"
+  if [ "$(type -t set_env_var)" == "function" ]; then
+    set_env_var 'APP_URL' $APP_URL $OPENSHIFT_HOMEDIR/.env/user_vars
+  fi
+fi
+
+if [ ! -z "$OPENSHIFT_SECRET_TOKEN" ]; then
+  export APP_KEY=${OPENSHIFT_SECRET_TOKEN:0:31}
+  if [ "$(type -t set_env_var)" == "function" ]; then
+    set_env_var 'APP_KEY' $APP_KEY $OPENSHIFT_HOMEDIR/.env/user_vars
+  fi
+fi
+
+if [ ! -z "$OPENSHIFT_POSTGRESQL_DB_HOST" ]; then
+  export DB_CONNECTION="pgsql"
+fi
+
+if [ ! -z "$OPENSHIFT_MYSQL_DB_HOST" ]; then
+  export DB_CONNECTION="mysql"
+fi
+
+if [ -z "$DB_CONNECTION" ]; then
+  echo "Could not find the database cartridge.  Please run:"
+  echo "rhc cartridge add -a $OPENSHIFT_APP_NAME -c mysql-5.5"
+  echo "or"
+  echo "rhc cartridge add -a $OPENSHIFT_APP_NAME -c postgresql-9.2"
+  echo "then make a sample commit (add whitespace somewhere) and re-push"
+  exit 5
+else
+  echo "Database driver set to '$DB_CONNECTION'..."
+  if [ "$(type -t set_env_var)" == "function" ]; then
+    set_env_var 'DB_CONNECTION' $DB_CONNECTION $OPENSHIFT_HOMEDIR/.env/user_vars
+  fi
+fi
