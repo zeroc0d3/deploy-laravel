@@ -1,6 +1,13 @@
 # Deploy Laravel (with Capistrano)
 
-![license](https://img.shields.io/badge/license-Apache_2-blue)
+![all contributors](https://img.shields.io/github/contributors/zeroc0d3/deploy-laravel)
+![tags](https://img.shields.io/github/v/tag/zeroc0d3/deploy-laravel?sort=semver)
+![issues](https://img.shields.io/github/issues/zeroc0d3/deploy-laravel)
+![pull requests](https://img.shields.io/github/issues-pr/zeroc0d3/deploy-laravel)
+![forks](https://img.shields.io/github/forks/zeroc0d3/deploy-laravel)
+![stars](https://img.shields.io/github/stars/zeroc0d3/deploy-laravel)
+![license](https://img.shields.io/github/license/zeroc0d3/deploy-laravel)
+![hacktober](https://img.shields.io/github/hacktoberfest/2020/zeroc0d3/deploy-laravel)
 
 Zero downtime deployment Laravel with Capistrano
 
