@@ -1,0 +1,46 @@
+version: '3.6'
+
+#================================================================================================
+# NETWORK SETUP
+#================================================================================================
+networks:
+  zeroc0d3lab_net:
+    name: ${NETWORKS_NAME:-zeroc0d3lab_net}
+    driver: ${NETWORKS_DRIVER:-bridge}
+    ipam:
+      config:
+        - subnet: 172.125.125.0/16
+
+#================================================================================================
+# VOLUME SETUP
+#================================================================================================
+volumes:
+  jenkins:
+    driver: ${VOLUMES_DRIVER:-local}
+
+services:
+#================================================================================================
+# JENKINS
+#================================================================================================
+  jenkins:
+    # image: zeroc0d3labdevops/alpine-jenkins:latest
+    build:
+      context: ./docker/alpine-jenkins
+      dockerfile: Dockerfile
+    container_name: ${CONTAINER_JENKINS:-zeroc0d3lab_jenkins}
+    restart: unless-stopped
+    ports:
+      - "${PORT_JENKINS:-8185}:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /etc/localtime:/etc/localtime:ro
+      - ${DATA_JENKINS:-/opt/data/docker/jenkins}:/tmp/backup
+    environment:
+      - TZ="Asia/Jakarta"
+      - JENKINS_VERSION=2.249.2
+      - JENKINS_HOME=/home/jenkins
+    privileged: true
+    tty: true
+    networks:
+      zeroc0d3lab_net:
+        ipv4_address: ${CONTAINER_IP_JENKINS:-172.125.125.15}
