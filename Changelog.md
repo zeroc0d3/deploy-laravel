@@ -1,5 +1,9 @@
 # Changelog History
 
+## Version 1.3
+* Added Jenkins pipeline ci/cd configuration
+* Added container jenkins for testing local deployment
+
 ## Version 1.2
 * Added Openshift deployment configuration
 
