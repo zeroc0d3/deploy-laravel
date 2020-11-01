@@ -7,7 +7,6 @@
 ![forks](https://img.shields.io/github/forks/zeroc0d3/deploy-laravel)
 ![stars](https://img.shields.io/github/stars/zeroc0d3/deploy-laravel)
 ![license](https://img.shields.io/github/license/zeroc0d3/deploy-laravel)
-![hacktober](https://img.shields.io/github/hacktoberfest/2020/zeroc0d3/deploy-laravel)
 
 Zero downtime deployment Laravel with Capistrano
 
