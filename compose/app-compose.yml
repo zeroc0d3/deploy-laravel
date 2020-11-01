@@ -72,12 +72,12 @@ services:
       - ENV=local
       - TZ="Asia/Jakarta"
       - MYSQL_PROFILE=my-medium
-      - MYSQL_ROOT_PASSWORD=${MARIADB_ROOT_PASSWORD}
-      - MYSQL_ROOT_HOST=${MARIADB_ROOT_HOST}
-      - MYSQL_HOST=${MARIADB_HOST}
-      - MYSQL_DATABASE=${MARIADB_DATABASE}
-      - MYSQL_USER=${MARIADB_USER}
-      - MYSQL_PASSWORD=${MARIADB_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${MARIADB_ROOT_PASSWORD:-secret}
+      - MYSQL_ROOT_HOST=${MARIADB_ROOT_HOST:-172.125.125.4}
+      - MYSQL_HOST=${MARIADB_HOST:-172.125.125.4}
+      - MYSQL_DATABASE=${MARIADB_DATABASE:-laravel}
+      - MYSQL_USER=${MARIADB_USER:-root}
+      - MYSQL_PASSWORD=${MARIADB_PASSWORD:-secret}
     #entrypoint: /run-mysqld.sh
     privileged: true
     tty: true

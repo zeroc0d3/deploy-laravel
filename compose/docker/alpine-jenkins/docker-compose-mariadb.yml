@@ -1,0 +1,51 @@
+version: '3.6'
+
+#================================================================================================
+# NETWORK SETUP
+#================================================================================================
+networks:
+  zeroc0d3lab_net:
+    name: ${NETWORKS_NAME:-zeroc0d3lab_net}
+    driver: ${NETWORKS_DRIVER:-bridge}
+    ipam:
+      config:
+        - subnet: 172.125.125.0/16
+
+#================================================================================================
+# VOLUME SETUP
+#================================================================================================
+volumes:
+  mariadb:
+    driver: ${VOLUMES_DRIVER:-local}
+
+services:
+#================================================================================================
+# MARIADB
+#================================================================================================
+  mariadb:
+    image: zeroc0d3labdevops/alpine-mariadb:latest
+    # build:
+    #   context: /opt/mariadb
+    #   dockerfile: Dockerfile
+    container_name: ${CONTAINER_MARIADB:-jenkins_mariadb}
+    restart: always
+    ports:
+      - "${PORT_MARIADB:-3306}:3306"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${DATA_MARIADB:-/opt/data/docker/mariadb}:/var/lib/mysql
+    environment:
+      - ENV=local
+      - TZ="Asia/Jakarta"
+      - MYSQL_PROFILE=my-medium
+      - MYSQL_ROOT_PASSWORD=${MARIADB_ROOT_PASSWORD:-secret}
+      - MYSQL_ROOT_HOST=${MARIADB_ROOT_HOST:-127.0.0.1}
+      - MYSQL_HOST=${MARIADB_HOST:-127.0.0.1}
+      - MYSQL_DATABASE=${MARIADB_DATABASE:-laravel}
+      - MYSQL_USER=${MARIADB_USER:-root}
+      - MYSQL_PASSWORD=${MARIADB_PASSWORD:-secret}
+    privileged: true
+    tty: true
+    networks:
+      zeroc0d3lab_net:
+        ipv4_address: ${CONTAINER_IP_MARIADB:-172.125.125.4}

@@ -212,6 +212,16 @@ storage
   ```
 
 ## Git Pipeline CI/CD
+* Create secure PEM file for deployment
+  ```
+  openssl rsa -in id_rsa -outform pem > ~/.ssh/id_rsa.pem
+  --- or ---
+  ./run-encode.sh
+  ```
+* Added PEM file (myapp.pem) in `keys` folder
+  ```
+  cp ~/.ssh/id_rsa.pem keys/myapp.pem
+  ```
 * GitLab Configuration Variable
   : [.gitlab-ci.yml](.gitlab-ci.yml)
   ```
@@ -235,6 +245,11 @@ storage
   ```
 * OpenShift Configuration
   : [.openshift/action_hooks](.openshift/action_hooks)
+* Jenkins Configuration
+  : [jenkins/staging/Jenkinsfile](jenkins/staging/Jenkinsfile) for Staging and
+  [jenkins/production/Jenkinsfile](jenkins/production/Jenkinsfile) for Production, detail documentation refer to this
+  [link](jenkins/README.md)
+
 * Trigger Pipeline CI/CD
   ```
   - Commit
@@ -258,7 +273,6 @@ storage
     git push --all -u && git push --tags
   ```
 
-
 ## Tested Environment
 ### Versioning
 * Docker version
@@ -269,8 +283,13 @@ storage
   ```
   docker-compose version 1.27.4, build 40524192
   ```
+* Jenkins version
+  ```
+  Jenkins
+  ```
 
 ## TODO
+* [X] Pipeline CI/CD using Jenkins
 * [ ] Provisioning with Terraform & Terragrunt
 * [ ] Deployment with Helm Chart
 * [ ] Deployment with K8S
