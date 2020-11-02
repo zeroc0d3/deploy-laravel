@@ -6,7 +6,7 @@ ask(:password, nil, echo: false)
 server '172.125.125.7', user: 'root', port: 22, roles: %w{app web db}
 
 set :application, "myapp-deploy"
-set :repo_url, "git@gitlab.com:zeroc0d3lab-devops-poc/deploy-laravel.git"
+set :repo_url, "git@github.com:zeroc0d3/deploy-laravel.git"
 
 # Default branch is :master
 set :branch, "dev-staging"
