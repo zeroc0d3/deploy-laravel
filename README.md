@@ -285,7 +285,7 @@ storage
   ```
 * Jenkins version
   ```
-  Jenkins
+  Jenkins 2.249.2
   ```
 
 ## TODO
