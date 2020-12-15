@@ -195,3 +195,17 @@ ALTER DATABASE [db_name] RENAME TO '[db_name_new]';
  zeroc0d3   | Superuser                                                  | {}
  postgres   | Superuser, Create role, Create DB, Replication, Bypass RLS | {}
 ```
+
+* Alter Role
+```
+SUPERUSER           | NOSUPERUSER   – determine if the role is a superuser or not.
+CREATEDB            | NOCREATEDB    – allow the role to create new databases.
+CREATEROLE          | NOCREATEROLE  – allow the role to create or change roles.
+INHERIT             | NOINHERIT     – determine if the role to inherit privileges of roles of which it is a member.
+LOGIN               | NOLOGIN       – allow the role to log in.
+REPLICATION         | NOREPLICATION – determine if the role is a replication roles.
+BYPASSRLS           | NOBYPASSRLS   – determine if the role to by pass a row-level security (RLS) policy.
+CONNECTION LIMIT limit              – specify the number of concurrent connection a role can made, -1 means unlimited.
+PASSWORD 'password' | PASSWORD NULL – change the role’s password.
+VALID UNTIL 'timestamp'             – set the date and time after which the role’s password is no long valid.
+```
